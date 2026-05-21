@@ -86,18 +86,14 @@ jobs:
 
       - uses: ./.github/actions/init
 
-      - name: Test docs
-        run: ./staging/test-docs.sh
-        env:
-          GH_PAT: ${{ secrets.GLH_STAGING_GITHUB_PAT }}
-          LOGIN_SECRET: ${{ secrets.GLH_STAGING_LOGIN_SECRET }}
-
       - name: Install git-lfs
         run: sudo apt-get update && sudo apt-get install -y git-lfs
 
-      - name: Test git lfs
-        run: ./staging/test-git-lfs.sh
+      - name: Run staging tests (vitest)
+        run: bun run test
+        working-directory: staging
         env:
           GH_PAT: ${{ secrets.GLH_STAGING_GITHUB_PAT }}
+          LOGIN_SECRET: ${{ secrets.GLH_STAGING_LOGIN_SECRET }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           RUN_ID: ${{ github.run_id }}

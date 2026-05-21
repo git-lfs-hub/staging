@@ -52,41 +52,52 @@ Checkout uses `repository: ${{ github.repository }}` — the caller. Then expect
 - `staging/` submodule — provides `test-docs.sh`, `test-git-lfs.sh`, `session-cookie.ts`
 - `server/` submodule — provides `server/wrangler.template.jsonc` and source for `wrangler deploy`
 
-## Scripts
+## Tests (vitest)
 
-| File | Run by | What it does |
-|------|--------|---------------|
-| `session-cookie.ts` | `test-docs.sh` | Encrypts `{ token: GH_PAT }` with `LOGIN_SECRET` → `gh_session_v2` cookie value |
-| `test-docs.sh` | `staging.yml` `test` job | Tier 2: authenticated HTML + assets + unauth 302 redirect |
-| `test-git-lfs.sh` | same | Real `git lfs push` against staging Worker to `git-lfs-hub/test` repo |
+| File | What it covers |
+|------|----------------|
+| `test-docs.test.ts` | Tier 2: authenticated HTML + assets + unauth 302 redirect |
+| `test-git-lfs.test.ts` | Real `git lfs push` against staging Worker to `git-lfs-hub/test` repo |
+| `lib.ts` | Shared: typed `vars.json` loader (absolute path), `requireEnv` |
+
+Run from `staging/` cwd:
+
+```sh
+bun run test     # bunx vitest run --reporter=github-actions
+```
+
+Caller workflow uses `working-directory: staging` + `bun run test`. Tests pull `STAGING_URL`, `DOCS_TITLE`, `LFS_URL` from `../vars.json` (deploy root) via `lib.vars`.
+
+### Caller-side `staging` workspace
+
+Staging is registered as a `bun` workspace in `deploy/package.json`, so root `bun install --frozen-lockfile` installs vitest into `staging/node_modules`. Fork users must add `"staging"` to their `package.json` `workspaces` array.
 
 ### Required environment (set by `staging.yml`)
 
-Scripts read `STAGING_URL`, `DOCS_TITLE`, `LFS_URL`, `STAGING_HOST` directly from rendered `vars.json` at CWD. Workflow only passes secrets + run identity:
-
 | Variable | Used by | Source |
 |----------|---------|--------|
-| `GH_PAT` | both | caller's `GLH_STAGING_GITHUB_PAT` |
-| `LOGIN_SECRET` | `test-docs.sh` | caller's `GLH_STAGING_LOGIN_SECRET` |
-| `PR_NUMBER`, `RUN_ID` | `test-git-lfs.sh` | `github.event.pull_request.number`, `github.run_id` |
+| `GH_PAT` | both tests | caller's `GLH_STAGING_GITHUB_PAT` |
+| `LOGIN_SECRET` | `test-docs` | caller's `GLH_STAGING_LOGIN_SECRET` |
+| `PR_NUMBER`, `RUN_ID` | `test-git-lfs` | `github.event.pull_request.number`, `github.run_id` |
+
+Tests throw on missing env via `lib.requireEnv` — fail loudly at module load.
 
 ### Local smoke run
 
-From a `deploy` checkout with rendered staging `vars.json` (run `staging.yml`'s vars-mutation locally, or hand-craft `vars.input.json` with `cloudflare.workerName: lfs-server-staging` + `s3.bucket: lfs-objects-staging` and `bun run config`):
+From a `deploy` checkout with rendered staging `vars.json`:
 
 ```sh
 export GH_PAT=ghp_...
 export LOGIN_SECRET=<64-hex>
-
-./staging/test-docs.sh
-
 export PR_NUMBER=local
 export RUN_ID=$(date +%s)
-./staging/test-git-lfs.sh
+
+cd staging
+bun run test
 ```
 
 ## Cross-repo import
 
-`session-cookie.ts` imports `encryptCode` from `../server/src/login/utils.ts` (the `server` submodule in `deploy`). It runs under Bun on a CI runner; `utils.ts` only depends on `jose`, no Workers runtime needed.
+`test-docs.test.ts` imports `encryptCode` from `../server/src/login/utils.ts` (the `server` submodule in `deploy`). `utils.ts` only depends on `jose`, no Workers runtime needed — runs in vitest's default node environment.
 
-If `server/src/login/utils.ts` is moved or its `encryptCode` signature changes, this script must be updated in lockstep.
+If `server/src/login/utils.ts` is moved or its `encryptCode` signature changes, `test-docs.test.ts` must be updated in lockstep.
