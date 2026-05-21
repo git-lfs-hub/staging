@@ -3,10 +3,10 @@ import { encryptCode } from "../server/src/login/utils";
 import { vars, requireEnv } from "./lib";
 
 const { GH_PAT, LOGIN_SECRET } = requireEnv("GH_PAT", "LOGIN_SECRET");
-const STAGING_URL = `https://${vars.lfs.server}`;
+const BASE_URL = `https://${vars.lfs.server}`;
 const DOCS_TITLE = vars.title;
 
-describe("staging docs", () => {
+describe("e2e docs", () => {
   let Cookie: string;
 
   beforeAll(async () => {
@@ -16,7 +16,7 @@ describe("staging docs", () => {
   });
 
   async function get(path: string, withCookie: boolean) {
-    const r = await fetch(`${STAGING_URL}${path}`, {
+    const r = await fetch(`${BASE_URL}${path}`, {
       headers: withCookie ? { Cookie } : {},
       redirect: "manual",
     });
