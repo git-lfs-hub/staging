@@ -7,61 +7,11 @@ set -euo pipefail
 STAGING_URL="https://$(jq -r '.lfs.server' vars.json)"
 DOCS_TITLE="$(jq -r '.title' vars.json)"
 
-# Helpers — emit GitHub Actions workflow commands when running under Actions,
-# fall back to plain output locally.
 # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands
-_in_actions() { [ "${GITHUB_ACTIONS:-}" = "true" ]; }
-_open_group=""
-
-_end_group() {
-  if _in_actions && [ -n "$_open_group" ]; then
-    printf '::endgroup::\n'
-    _open_group=""
-  fi
-}
-trap _end_group EXIT
-
-step() {
-  _end_group
-  if _in_actions; then
-    printf '::group::%s\n' "$1"
-    _open_group=1
-  else
-    printf '\n› %s\n' "$1"
-  fi
-}
-
-pass() { printf '  ✓ %s\n' "$1"; }
-
-fail() {
-  _end_group
-  if _in_actions; then
-    printf '::error title=docs-test::%s\n' "$1"
-  else
-    printf '  ✗ %s\n' "$1" >&2
-  fi
-  exit 1
-}
-
-notice() {
-  if _in_actions; then
-    printf '::notice title=docs-test::%s\n' "$1"
-  else
-    printf '%s\n' "$1"
-  fi
-}
-
-dump_body() {
-  local file=$1
-  if _in_actions; then
-    printf '::group::response body (first 50 lines)\n'
-    head -50 "$file"
-    printf '::endgroup::\n'
-  else
-    echo "--- response body (first 50 lines) ---" >&2
-    head -50 "$file" >&2
-  fi
-}
+step()   { printf '\n› %s\n' "$1"; }
+pass()   { printf '  ✓ %s\n' "$1"; }
+fail()   { printf '::error title=docs-test::%s\n' "$1"; exit 1; }
+notice() { printf '::notice title=docs-test::%s\n' "$1"; }
 
 printf 'STAGING_URL=%s\nDOCS_TITLE=%s\n' "$STAGING_URL" "$DOCS_TITLE"
 
@@ -75,11 +25,13 @@ step "GET / with valid session — expect 200 + DOCS_TITLE"
 body_file="$(mktemp)"
 code="$(curl -sS -H "$AUTH_HEADER" -o "$body_file" -w '%{http_code}' "$STAGING_URL/")"
 if [ "$code" != "200" ]; then
-  dump_body "$body_file"
+  echo "--- response body (first 50 lines) ---" >&2
+  head -50 "$body_file" >&2
   fail "expected 200, got $code for $STAGING_URL/"
 fi
 if ! grep -q "$DOCS_TITLE" "$body_file"; then
-  dump_body "$body_file"
+  echo "--- response body (first 50 lines) ---" >&2
+  head -50 "$body_file" >&2
   fail "DOCS_TITLE '$DOCS_TITLE' not in body of $STAGING_URL/"
 fi
 pass "200 OK, body contains '$DOCS_TITLE'"
@@ -99,5 +51,4 @@ code="$(curl -sS -o /dev/null -w '%{http_code}' "$STAGING_URL/")"
 [ "$code" = "302" ] || fail "expected 302 (unauthenticated redirect), got $code — auth may be bypassed"
 pass "302 redirect"
 
-_end_group
 notice "All docs staging checks passed."

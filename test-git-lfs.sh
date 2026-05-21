@@ -10,49 +10,11 @@ export GH_PAT  # credential helper subprocess reads from env
 STAGING_HOST="$(jq -r '.lfs.server' vars.json)"
 LFS_URL="https://${STAGING_HOST}/git-lfs-hub/test"
 
-# Helpers — emit GitHub Actions workflow commands when running under Actions,
-# fall back to plain output locally.
 # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands
-_in_actions() { [ "${GITHUB_ACTIONS:-}" = "true" ]; }
-_open_group=""
-
-_end_group() {
-  if _in_actions && [ -n "$_open_group" ]; then
-    printf '::endgroup::\n'
-    _open_group=""
-  fi
-}
-trap _end_group EXIT
-
-step() {
-  _end_group
-  if _in_actions; then
-    printf '::group::%s\n' "$1"
-    _open_group=1
-  else
-    printf '\n› %s\n' "$1"
-  fi
-}
-
-pass() { printf '  ✓ %s\n' "$1"; }
-
-fail() {
-  _end_group
-  if _in_actions; then
-    printf '::error title=lfs-push-test::%s\n' "$1"
-  else
-    printf '  ✗ %s\n' "$1" >&2
-  fi
-  exit 1
-}
-
-notice() {
-  if _in_actions; then
-    printf '::notice title=lfs-push-test::%s\n' "$1"
-  else
-    printf '%s\n' "$1"
-  fi
-}
+step()   { printf '\n› %s\n' "$1"; }
+pass()   { printf '  ✓ %s\n' "$1"; }
+fail()   { printf '::error title=lfs-push-test::%s\n' "$1"; exit 1; }
+notice() { printf '::notice title=lfs-push-test::%s\n' "$1"; }
 
 BRANCH="ci/pr-${PR_NUMBER}-${RUN_ID}"
 FILE="ci-${RUN_ID}.bin"
@@ -96,5 +58,4 @@ if ! git push --porcelain origin "HEAD:refs/heads/${BRANCH}" 2>&1 | sed 's/^/   
 fi
 pass "pushed $BRANCH; LFS object uploaded via $STAGING_HOST"
 
-_end_group
 notice "All LFS push staging checks passed."
