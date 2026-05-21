@@ -28,7 +28,7 @@ jobs:
           submodules: recursive
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
-      - uses: ./staging/.github/actions/init-staging
+      - uses: ./e2e/.github/actions/init-staging
         with:
           vars-json: ${{ inputs.vars-json }}
 
