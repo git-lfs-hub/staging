@@ -6,9 +6,9 @@ export type Vars = {
   lfs: { server: string };
 };
 
-// Resolve vars.json at deploy root (parent of staging/), independent of CWD.
-const stagingDir = dirname(fileURLToPath(import.meta.url));
-const varsPath = join(stagingDir, "..", "vars.json");
+// Resolve vars.json at deploy root (parent of e2e/), independent of CWD.
+const e2eDir = dirname(fileURLToPath(import.meta.url));
+const varsPath = join(e2eDir, "..", "vars.json");
 export const vars = (await Bun.file(varsPath).json()) as Vars;
 
 export function requireEnv<K extends string>(...names: K[]): Record<K, string> {
