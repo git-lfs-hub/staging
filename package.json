@@ -1,0 +1,12 @@
+{
+  "name": "@git-lfs-hub/staging",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "staging-test": "vitest run --reporter=verbose --reporter=github-actions",
+    "staging-test:watch": "vitest watch"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.5"
+  }
+}
