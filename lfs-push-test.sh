@@ -2,18 +2,19 @@
 set -euo pipefail
 
 : "${GH_PAT:?}"
-: "${LFS_URL:?}"
 : "${PR_NUMBER:?}"
 : "${RUN_ID:?}"
 
 export GH_PAT  # credential helper subprocess reads from env
+
+STAGING_HOST="$(jq -r '.lfs.server' vars.json)"
+LFS_URL="https://${STAGING_HOST}/git-lfs-hub/test"
 
 pass() { printf '  ✓ %s\n' "$1"; }
 fail() { printf '  ✗ %s\n' "$1" >&2; exit 1; }
 step() { printf '\n› %s\n' "$1"; }
 
 BRANCH="ci/pr-${PR_NUMBER}-${RUN_ID}"
-STAGING_HOST="$(echo "$LFS_URL" | sed -E 's#^https?://([^/]+)/.*#\1#')"
 FILE="ci-${RUN_ID}.bin"
 COMMIT_MSG="ci: staging test PR #${PR_NUMBER} run ${RUN_ID}"
 

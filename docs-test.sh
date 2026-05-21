@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-: "${STAGING_URL:?}"
 : "${GH_PAT:?}"
 : "${LOGIN_SECRET:?}"
-: "${DOCS_TITLE:?}"
+
+STAGING_URL="https://$(jq -r '.lfs.server' vars.json)"
+DOCS_TITLE="$(jq -r '.title' vars.json)"
 
 pass() { printf '  ✓ %s\n' "$1"; }
 fail() { printf '  ✗ %s\n' "$1" >&2; exit 1; }
 step() { printf '\n› %s\n' "$1"; }
+
+printf 'STAGING_URL=%s\nDOCS_TITLE=%s\n' "$STAGING_URL" "$DOCS_TITLE"
 
 step "Mint session cookie"
 COOKIE="$(bun staging/mint-session-cookie.ts)" || fail "mint-session-cookie.ts failed"
