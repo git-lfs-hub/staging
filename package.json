@@ -7,6 +7,6 @@
     "e2e-test:watch": "vitest watch"
   },
   "devDependencies": {
-    "vitest": "^4.1.5"
+    "vitest": "^4.1.7"
   }
 }
