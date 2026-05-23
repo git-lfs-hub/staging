@@ -1,5 +1,10 @@
 # Git LFS Hub — e2e
 
+[![CI][ci-badge]][gh-wf-href]
+[![CodeQL][codeql-badge]][codeql-href]
+[![Socket][socket-badge]][socket-href]
+[![License][license-badge]][license-href]
+
 The end-to-end test harness that proves each [Git LFS Hub](https://github.com/git-lfs-hub) release works before it ships. A reusable GitHub Actions workflow (`staging.yml`) deploys a throwaway `-staging` Worker, and a vitest suite (`test-docs`, `test-git-lfs`) exercises a real `git lfs push` against it.
 
 For the bigger picture (what the stack does, the deploy flow, the other repos) see the [org overview](https://github.com/git-lfs-hub).
@@ -93,3 +98,15 @@ bun run e2e-test
 `test-docs.test.ts` imports `encryptCode` from `../server/src/login/utils.ts` (the `server` submodule in `deploy`). `utils.ts` only depends on `jose`, no Workers runtime needed — runs in vitest's default node environment.
 
 If `server/src/login/utils.ts` is moved or its `encryptCode` signature changes, `test-docs.test.ts` must be updated in lockstep.
+
+[ci-badge]: https://badgen.net/github/checks/git-lfs-hub/e2e/main?icon=bun&label=CI
+[gh-wf-href]: https://github.com/git-lfs-hub/e2e/actions/workflows/main.yml?query=branch%3Amain
+
+[codeql-badge]: https://github.com/git-lfs-hub/e2e/actions/workflows/github-code-scanning/codeql/badge.svg
+[codeql-href]: https://github.com/git-lfs-hub/e2e/actions/workflows/github-code-scanning/codeql?query=branch%3Amain
+
+[socket-badge]: https://badgen.net/static/Socket/report/blue?icon=socket
+[socket-href]: https://socket.dev/dashboard/org/git-lfs-hub/repo/@git-lfs-hub/e2e
+
+[license-badge]: https://badgen.net/github/license/git-lfs-hub/e2e
+[license-href]: LICENSE.md
