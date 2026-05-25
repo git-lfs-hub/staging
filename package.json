@@ -6,6 +6,9 @@
     "e2e-test": "vitest run --reporter=verbose --reporter=github-actions",
     "e2e-test:watch": "vitest watch"
   },
+  "dependencies": {
+    "@git-lfs-hub/auth": "file:../auth"
+  },
   "devDependencies": {
     "vitest": "^4.1.7"
   }

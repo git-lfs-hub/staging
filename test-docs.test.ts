@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeAll } from "vitest";
-import { encryptCode } from "../server/src/login/utils";
+import { encryptSession } from "@git-lfs-hub/auth";
 import { vars, requireEnv } from "./lib";
 
 const { GH_PAT, LOGIN_SECRET } = requireEnv("GH_PAT", "LOGIN_SECRET");
@@ -10,8 +10,8 @@ describe("e2e docs", () => {
   let Cookie: string;
 
   beforeAll(async () => {
-    const cookieValue = await encryptCode({ token: GH_PAT }, LOGIN_SECRET, 86400);
-    expect(cookieValue, "encryptCode returned empty").toBeTruthy();
+    const cookieValue = await encryptSession({ token: GH_PAT }, LOGIN_SECRET, 86400);
+    expect(cookieValue, "encryptSession returned empty").toBeTruthy();
     Cookie = `gh_session_v2=${cookieValue}`;
   });
 
