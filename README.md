@@ -95,9 +95,9 @@ bun run e2e-test
 
 ## Cross-repo import
 
-`test-docs.test.ts` imports `encryptSession` from `@git-lfs-hub/auth` (the `auth` workspace in `deploy`). The auth package only depends on `jose` and `@octokit/rest`, no Workers runtime needed — runs in vitest's default node environment.
+`test-docs.test.ts` imports `encryptSession` from `@git-lfs-hub/lib/auth/session` (the `lib` workspace in `deploy`). The lib package only depends on `jose`, `hono`, and `@octokit/rest`, no Workers runtime needed — runs in vitest's default node environment.
 
-If `@git-lfs-hub/auth`'s `encryptSession` signature changes, `test-docs.test.ts` must be updated in lockstep.
+If `@git-lfs-hub/lib`'s `encryptSession` signature changes, `test-docs.test.ts` must be updated in lockstep.
 
 [ci-badge]: https://badgen.net/github/checks/git-lfs-hub/e2e/main?icon=bun&label=CI
 [gh-wf-href]: https://github.com/git-lfs-hub/e2e/actions/workflows/main.yml?query=branch%3Amain

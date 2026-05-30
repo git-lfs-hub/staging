@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeAll } from "vitest";
-import { encryptSession } from "@git-lfs-hub/auth";
+import { encryptSession } from "@git-lfs-hub/lib/auth/session";
 import { vars, requireEnv } from "./lib";
 
 const { GH_PAT, LOGIN_SECRET } = requireEnv("GH_PAT", "LOGIN_SECRET");
